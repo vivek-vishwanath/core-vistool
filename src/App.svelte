@@ -1,22 +1,42 @@
 <script lang="ts">
-    import {drawElbow} from "./handler";
-    import {ElementPoint} from "./path_painter";
+    import {StateMachine} from "./state_machine";
+    import {onMount} from "svelte";
+    import * as d3 from 'd3';
 
-    export const numButtons = 4;
-    export const buttons: HTMLButtonElement[] = [];
-    export let intROM: HTMLElement;
+    const numButtons = 4;
+    const buttons: HTMLButtonElement[] = [];
+    let intROM: HTMLElement, mainROM: HTMLElement;
+    let stateReg: HTMLElement, k0: HTMLElement, pc: HTMLElement, mar: HTMLElement;
+    let ram: HTMLElement;
 
     const pixels = Array.from({length: 32}, () =>
         Array.from({length: 32}, () => Math.random() < 0.3)
     );
 
+    let simulator: StateMachine;
+
     function sendInterrupt(i: number) {
-        const cb = drawElbow(new ElementPoint(buttons[i], 'top'), new ElementPoint(intROM, 'top'))?.drawPath(1000);
-        cb?.set(() => {
-            const painter = drawElbow(new ElementPoint(intROM, 'bottom'), new ElementPoint(buttons[i], 'bottom'))
-            painter?.drawPath(1000);
-        })
+        simulator.sendInterrupt(i);
     }
+
+    onMount(() => {
+        simulator = new StateMachine(buttons, intROM, stateReg, mainROM, mar, pc, k0, ram);
+        const svg = d3.select("#svg-canvas");
+
+        svg.append("defs")
+            .append("marker")
+            .attr("id", "arrow")
+            .attr("viewBox", "0 0 10 10")
+            .attr("refX", 8)      // Match to path's end
+            .attr("refY", 5)
+            .attr("markerWidth", 6)
+            .attr("markerHeight", 6)
+            .attr("orient", "auto-start-reverse")
+            .append("path")
+            .attr("d", "M 0 0 L 10 5 L 0 10 z")
+            .attr("fill", "black");
+
+    });
 
 </script>
 
@@ -64,14 +84,14 @@
                     <div class="top-right">
                         <div class="block ei">EI</div>
                         <div class="block introm" bind:this={intROM}>INT ROM</div>
-                        <div class="block state">State</div>
-                        <div class="block mainrom">Main ROM</div>
+                        <div class="block state" bind:this={stateReg}>State</div>
+                        <div class="block mainrom" bind:this={mainROM}>Main ROM</div>
                     </div>
                     <div class="bottom-right">
-                        <div class="block mar">MAR</div>
-                        <div class="block ram">RAM</div>
-                        <div class="block pc">PC</div>
-                        <div class="block sk0">$k0</div>
+                        <div class="block mar" bind:this={mar}>MAR</div>
+                        <div class="block ram" bind:this={ram}>RAM</div>
+                        <div class="block pc" bind:this={pc}>PC</div>
+                        <div class="block sk0" bind:this={k0}>$k0</div>
                     </div>
                 </div>
             </div>

@@ -1,21 +1,27 @@
 import * as d3 from 'd3';
 import {Callback} from "./handler";
+import {color} from "d3";
 
-export interface Path {
+export abstract class Path {
 
-    drawPath(time: number): Callback
+    protected constructor(protected svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, undefined> ) {}
+
+    abstract drawPath(): Callback
 }
 
-export class PointPath implements Path {
+export class PointPath extends Path {
 
-    private svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, undefined>;
-    pathData: [number, number][] = [];
+    private pathData: [number, number][] = [];
     private svgRect: DOMRect | undefined;
+    private duration: number;
+    private strokeColor: string;
 
-    constructor(svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, undefined>, pathData: [number, number][]) {
-        this.svg = svg;
+    constructor(svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, undefined>, pathData: [number, number][], duration: number, color: string) {
+        super(svg);
         this.pathData = pathData;
-        this.svgRect = this.svg.node()?.getBoundingClientRect();
+        this.svgRect = svg.node()?.getBoundingClientRect();
+        this.duration = duration;
+        this.strokeColor = color;
     }
 
     line = d3.line<[number, number]>()
@@ -23,10 +29,10 @@ export class PointPath implements Path {
         .y(d => d[1] - (this.svgRect?.top ?? 0))
         .curve(d3.curveLinear);
 
-    drawPath(time: number): Callback {
+    drawPath(): Callback {
         const path = this.svg.append('path')
             .attr('d', this.line(this.pathData)!)
-            .attr('stroke', 'orange')
+            .attr('stroke', this.strokeColor)
             .attr('stroke-width', 2)
             .attr('fill', 'none');
 
@@ -37,19 +43,20 @@ export class PointPath implements Path {
             .attr('stroke-dasharray', totalLength)
             .attr('stroke-dashoffset', totalLength)
             .transition()
-            .duration(time)
+            .duration(this.duration)
             .ease(d3.easeLinear)
             .attr('stroke-dashoffset', 0)
-            .on("end", () => { callback.function() });
+            .on("end", () => { path.attr("marker-end", "url(#arrow)"); callback.function() });
         return callback;
     }
 }
 
-export class VectorPath implements Path {
+export class VectorPath extends Path {
 
-    pointPath: PointPath;
+    private pointPath: PointPath;
 
-    constructor(svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, undefined>, start: [number, number], vectorData: [number, number][]) {
+    constructor(svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, undefined>, start: [number, number], vectorData: [number, number][], duration: number, color: string) {
+        super(svg);
         let pathData: [number, number][] = []
         let posX = start[0];
         let posY = start[1];
@@ -59,15 +66,15 @@ export class VectorPath implements Path {
             posY += vectorData[i][1];
             pathData.push([posX, posY]);
         }
-        this.pointPath = new PointPath(svg, pathData);
+        this.pointPath = new PointPath(svg, pathData, duration, color);
     }
 
-    drawPath(time: number): Callback {
-        return this.pointPath.drawPath(time);
+    drawPath(): Callback {
+        return this.pointPath.drawPath();
     }
 }
 
-type Direction = 'top' | 'right' | 'bottom' | 'left';
+export type Direction = 'top' | 'right' | 'bottom' | 'left';
 
 export class ElementPoint {
 

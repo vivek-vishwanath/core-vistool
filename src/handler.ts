@@ -6,7 +6,7 @@ function getSVG() {
     return d3.select<SVGSVGElement, unknown>("#svg-canvas");
 }
 
-export function drawElbow(from: ElementPoint, to: ElementPoint): Path | null {
+export function drawElbow(from: ElementPoint, to: ElementPoint, duration: number = 1000, color: string = 'black'): Path | null {
     const svg = getSVG();
     const svgRect = svg.node()?.getBoundingClientRect();
 
@@ -17,31 +17,31 @@ export function drawElbow(from: ElementPoint, to: ElementPoint): Path | null {
     if (from.direction === 'right' && to.direction === 'left' && from.x < to.x ||
         from.direction === 'left' && to.direction === 'right' && from.x > to.x) {
         const midX = (from.x + to.x) / 2
-        return new PointPath(svg, [from.path(), [midX, from.y], [midX, to.y], to.path()]);
+        return new PointPath(svg, [from.path(), [midX, from.y], [midX, to.y], to.path()], duration, color);
     } else if (from.direction === 'top' && to.direction === 'bottom' && from.y < to.y ||
         from.direction === 'bottom' && to.direction === 'top' && from.y > to.y) {
         const midY = (from.y + to.y) / 2
-        return new PointPath(svg, [from.path(), [from.x, midY], [to.x, midY], to.path()]);
+        return new PointPath(svg, [from.path(), [from.x, midY], [to.x, midY], to.path()], duration, color);
     } else if (from.direction === 'left' && to.direction !== 'left' && from.x > to.x) {
-        return new PointPath(svg, [from.path(), [to.x, from.y], to.path()]);
+        return new PointPath(svg, [from.path(), [to.x, from.y], to.path()], duration, color);
     } else if (from.direction === 'right' && to.direction !== 'right' && from.x < to.x) {
-        return new PointPath(svg, [from.path(), [to.x, from.y], to.path()]);
+        return new PointPath(svg, [from.path(), [to.x, from.y], to.path()], duration, color);
     } else if (from.direction === 'top' && to.direction !== 'top' && from.y > to.y) {
-        return new PointPath(svg, [from.path(), [from.x, to.y], to.path()]);
+        return new PointPath(svg, [from.path(), [from.x, to.y], to.path()], duration, color);
     } else if (from.direction === 'bottom' && to.direction !== 'bottom' && from.y < to.y) {
-        return new PointPath(svg, [from.path(), [from.x, to.y], to.path()]);
+        return new PointPath(svg, [from.path(), [from.x, to.y], to.path()], duration, color);
     } else if (from.direction === 'top' && to.direction === 'top') {
         const midY = Math.min(from.y, to.y) - 20;
-        return new PointPath(svg, [from.path(), [from.x, midY], [to.x, midY], to.path()])
+        return new PointPath(svg, [from.path(), [from.x, midY], [to.x, midY], to.path()], duration, color);
     } else if (from.direction === 'bottom' && to.direction === 'bottom') {
         const midY = Math.max(from.y, to.y) + 20;
-        return new PointPath(svg, [from.path(), [from.x, midY], [to.x, midY], to.path()])
+        return new PointPath(svg, [from.path(), [from.x, midY], [to.x, midY], to.path()], duration, color);
     } else if (from.direction === 'left' && to.direction === 'left') {
         const midX = Math.min(from.x, to.x) - 20;
-        return new PointPath(svg, [from.path(), [midX, from.y], [midX, to.y], to.path()])
+        return new PointPath(svg, [from.path(), [midX, from.y], [midX, to.y], to.path()], duration, color);
     } else if (from.direction === 'right' && to.direction === 'right') {
         const midX = Math.max(from.x, to.x) + 20;
-        return new PointPath(svg, [from.path(), [midX, from.y], [midX, to.y], to.path()])
+        return new PointPath(svg, [from.path(), [midX, from.y], [midX, to.y], to.path()], duration, color);
     }
 
     return null;
