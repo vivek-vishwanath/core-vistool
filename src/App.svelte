@@ -1,11 +1,10 @@
 <script lang="ts">
+    import {sendInterrupt, numButtons, buttons} from "./handler";
 
     const pixels = Array.from({length: 32}, () =>
         Array.from({length: 32}, () => Math.random() < 0.3)
     );
 
-
-    let numButtons = 4;
 
 </script>
 
@@ -36,13 +35,18 @@
                 </div>
             </div>
 
+            <svg id="svg-canvas"></svg>
             <div class="diagram-container">
                 <div class="left-column">
                     {#each Array(numButtons) as _, i}
 
-          <div class="block pipeline">INT{numButtons - i}</div>
-            {/each}
-        </div>
+                        <button
+                                class="block pipeline"
+                                onclick={(_) => sendInterrupt(i)}
+                                bind:this={buttons[i]}
+                        >INT{numButtons - i}</button>
+                    {/each}
+                </div>
 
                 <div class="right-column">
                     <div class="top-right">
