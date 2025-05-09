@@ -1,10 +1,20 @@
 <script lang="ts">
-    import {sendInterrupt, numButtons, buttons} from "./handler";
+    import {drawElbow} from "./handler";
+    import {ElementPoint} from "./path_painter";
+
+    export const numButtons = 4;
+    export const buttons: HTMLButtonElement[] = [];
+    export let intROM: HTMLElement;
 
     const pixels = Array.from({length: 32}, () =>
         Array.from({length: 32}, () => Math.random() < 0.3)
     );
 
+    function sendInterrupt(i: number) {
+        let pt = new ElementPoint(buttons[i], 'top')
+        const painter = drawElbow(pt, new ElementPoint(intROM, 'top'))
+        painter?.drawPath(1000);
+    }
 
 </script>
 
@@ -51,7 +61,7 @@
                 <div class="right-column">
                     <div class="top-right">
                         <div class="block ei">EI</div>
-                        <div class="block introm">INT ROM</div>
+                        <div class="block introm" bind:this={intROM}>INT ROM</div>
                         <div class="block state">State</div>
                         <div class="block mainrom">Main ROM</div>
                     </div>

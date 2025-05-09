@@ -1,40 +1,49 @@
-import { mount } from 'svelte'
 import * as d3 from 'd3';
+import {ElementPoint, PointPath, type Path} from "./path_painter";
 
-export const numButtons = 4;
-export const buttons: HTMLButtonElement[] = [];
 
-export function sendInterrupt(i: number) {
-    const svg = d3.select<SVGSVGElement, unknown>("#svg-canvas");
-    const rect = buttons[i].getBoundingClientRect();
+function getSVG() {
+    return d3.select<SVGSVGElement, unknown>("#svg-canvas");
+}
 
-    const line = d3.line<[number, number]>()
-        .x(d => d[0])
-        .y(d => d[1])
-        .curve(d3.curveLinear);
-    const pathData = [
-        [100, 100],
-        [200, 200],
-        [800, 200],
-        [950, 400],
-        [200, 600],
-        [1000, 500],
-        [300, 600],
-        [50, 650]
-    ]
-    const path = svg.append('path')
-        .attr('d', line(pathData)!)
-        .attr('stroke', 'orange')
-        .attr('stroke-width', 2)
-        .attr('fill', 'none');
+export function drawElbow(from: ElementPoint, to: ElementPoint): Path | null {
+    const svg = getSVG();
+    const svgRect = svg.node()?.getBoundingClientRect();
 
-    const totalLength = (path.node() as SVGPathElement).getTotalLength();
+    if (!svgRect) return null;
 
-    path
-        .attr('stroke-dasharray', totalLength)
-        .attr('stroke-dashoffset', totalLength)
-        .transition()
-        .duration(2000)
-        .ease(d3.easeLinear)
-        .attr('stroke-dashoffset', 0);
+    console.log(from.direction + ","  +from.y + " ; " + to.direction + "," + to.y);
+
+    if (from.direction === 'right' && to.direction === 'left' && from.x < to.x ||
+        from.direction === 'left' && to.direction === 'right' && from.x > to.x) {
+        const midX = (from.x + to.x) / 2
+        return new PointPath(svg, [from.path(), [midX, from.y], [midX, to.y], to.path()]);
+    } else if (from.direction === 'top' && to.direction === 'bottom' && from.y < to.y ||
+        from.direction === 'bottom' && to.direction === 'top' && from.y > to.y) {
+        const midY = (from.y + to.y) / 2
+        return new PointPath(svg, [from.path(), [from.x, midY], [to.x, midY], to.path()]);
+    } else if (from.direction === 'left' && to.direction !== 'left' && from.x > to.x) {
+        return new PointPath(svg, [from.path(), [to.x, from.y], to.path()]);
+    } else if (from.direction === 'right' && to.direction !== 'right' && from.x < to.x) {
+        return new PointPath(svg, [from.path(), [to.x, from.y], to.path()]);
+    } else if (from.direction === 'top' && to.direction !== 'top' && from.y > to.y) {
+        return new PointPath(svg, [from.path(), [from.x, to.y], to.path()]);
+    } else if (from.direction === 'bottom' && to.direction !== 'bottom' && from.y < to.y) {
+        return new PointPath(svg, [from.path(), [from.x, to.y], to.path()]);
+    } else if (from.direction === 'top' && to.direction === 'top') {
+        const midY = Math.min(from.y, to.y) - 20;
+        return new PointPath(svg, [from.path(), [from.x, midY], [to.x, midY], to.path()])
+    } else if (from.direction === 'bottom' && to.direction === 'bottom') {
+        const midY = Math.max(from.y, to.y) + 20;
+        return new PointPath(svg, [from.path(), [from.x, midY], [to.x, midY], to.path()])
+    } else if (from.direction === 'left' && to.direction === 'left') {
+        const midX = Math.min(from.x, to.x) - 20;
+        return new PointPath(svg, [from.path(), [midX, from.y], [midX, to.y], to.path()])
+    } else if (from.direction === 'right' && to.direction === 'right') {
+        const midX = Math.max(from.x, to.x) + 20;
+        return new PointPath(svg, [from.path(), [midX, from.y], [midX, to.y], to.path()])
+    }
+
+    return null;
+
 }
