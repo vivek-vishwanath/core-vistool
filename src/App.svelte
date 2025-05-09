@@ -11,9 +11,11 @@
     );
 
     function sendInterrupt(i: number) {
-        let pt = new ElementPoint(buttons[i], 'top')
-        const painter = drawElbow(pt, new ElementPoint(intROM, 'top'))
-        painter?.drawPath(1000);
+        const cb = drawElbow(new ElementPoint(buttons[i], 'top'), new ElementPoint(intROM, 'top'))?.drawPath(1000);
+        cb?.set(() => {
+            const painter = drawElbow(new ElementPoint(intROM, 'bottom'), new ElementPoint(buttons[i], 'bottom'))
+            painter?.drawPath(1000);
+        })
     }
 
 </script>

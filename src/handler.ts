@@ -47,3 +47,24 @@ export function drawElbow(from: ElementPoint, to: ElementPoint): Path | null {
     return null;
 
 }
+type CallbackFunction<TArgs extends any[] = any[], TResult = void> = (...args: TArgs) => TResult;
+
+export class Callback<TArgs extends any[] = any[], TResult = void> {
+    private fn: CallbackFunction<TArgs, TResult>;
+
+    constructor(initialFn?: CallbackFunction<TArgs, TResult>) {
+        this.fn = initialFn ?? (() => {}) as CallbackFunction<TArgs, TResult>;
+    }
+
+    set(callback: CallbackFunction<TArgs, TResult>) {
+        this.fn = callback;
+    }
+
+    call(...args: TArgs): TResult {
+        return this.fn(...args);
+    }
+
+    get function(): CallbackFunction<TArgs, TResult> {
+        return this.fn;
+    }
+}

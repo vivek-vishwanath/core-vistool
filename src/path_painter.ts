@@ -1,8 +1,9 @@
 import * as d3 from 'd3';
+import {Callback} from "./handler";
 
 export interface Path {
 
-    drawPath(time: number): void
+    drawPath(time: number): Callback
 }
 
 export class PointPath implements Path {
@@ -22,7 +23,7 @@ export class PointPath implements Path {
         .y(d => d[1] - (this.svgRect?.top ?? 0))
         .curve(d3.curveLinear);
 
-    drawPath(time: number): void {
+    drawPath(time: number): Callback {
         const path = this.svg.append('path')
             .attr('d', this.line(this.pathData)!)
             .attr('stroke', 'orange')
@@ -30,6 +31,7 @@ export class PointPath implements Path {
             .attr('fill', 'none');
 
         const totalLength = (path.node() as SVGPathElement).getTotalLength();
+        const callback = new Callback(() => {console.log("initial callback")});
 
         path
             .attr('stroke-dasharray', totalLength)
@@ -37,8 +39,9 @@ export class PointPath implements Path {
             .transition()
             .duration(time)
             .ease(d3.easeLinear)
-            .attr('stroke-dashoffset', 0);
-
+            .attr('stroke-dashoffset', 0)
+            .on("end", () => { callback.function() });
+        return callback;
     }
 }
 
@@ -59,8 +62,8 @@ export class VectorPath implements Path {
         this.pointPath = new PointPath(svg, pathData);
     }
 
-    drawPath(time: number): void {
-        this.pointPath.drawPath(time);
+    drawPath(time: number): Callback {
+        return this.pointPath.drawPath(time);
     }
 }
 
