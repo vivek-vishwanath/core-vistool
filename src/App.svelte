@@ -1,7 +1,8 @@
 <script lang="ts">
-    import {StateMachine} from "./state_machine";
+    import {StateMachine, isPaused} from "./state_machine";
     import {onMount} from "svelte";
     import * as d3 from 'd3';
+    import {Components} from "./components.js";
 
     const numButtons = 4;
     const buttons: HTMLButtonElement[] = [];
@@ -19,8 +20,16 @@
         simulator.sendInterrupt(i);
     }
 
+    function togglePause() {
+        simulator.togglePause();
+    }
+
+    function finishCycle() {
+        simulator.finishClockCycle();
+    }
+
     onMount(() => {
-        simulator = new StateMachine(buttons, intROM, stateReg, mainROM, mar, pc, k0, ram);
+        simulator = new StateMachine(new Components(buttons, intROM, stateReg, mainROM, mar, pc, k0, ram));
         const svg = d3.select("#svg-canvas");
 
         svg.append("defs")
@@ -97,4 +106,6 @@
             </div>
         </div>
     </div>
+    <button class="control_buttons" onclick={togglePause}>{$isPaused ? 'Play' : 'Pause'}</button>
+    <button class="control_buttons" onclick={finishCycle}>Finish Cycle</button>
 </main>

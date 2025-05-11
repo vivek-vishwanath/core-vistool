@@ -37,7 +37,7 @@ export class PointPath extends Path {
             .attr('fill', 'none');
 
         const totalLength = (path.node() as SVGPathElement).getTotalLength();
-        const callback = new Callback(() => {console.log("initial callback")});
+        const callback = new Callback(() => {});
 
         path
             .attr('stroke-dasharray', totalLength)

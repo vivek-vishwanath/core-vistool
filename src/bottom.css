@@ -38,7 +38,7 @@
     min-width: 30px;
 }
 
-.pipeline { background-color: #fff1c1; }
+.pipeline { background-color: #fff1c1; color: black; }
 .introm, .mainrom { background-color: #b2d8d8; }
 .ei, .mar, .pc, .sk0, .state { background-color: #d1c4e9; }
 .ram { background-color: #d2f0d2; }
@@ -50,4 +50,8 @@ svg {
     top: 0;
     left: 0;
     pointer-events: none;
+}
+
+.control_buttons {
+    margin: 32px;
 }

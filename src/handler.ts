@@ -12,8 +12,6 @@ export function drawElbow(from: ElementPoint, to: ElementPoint, duration: number
 
     if (!svgRect) return null;
 
-    console.log(from.direction + ","  +from.y + " ; " + to.direction + "," + to.y);
-
     if (from.direction === 'right' && to.direction === 'left' && from.x < to.x ||
         from.direction === 'left' && to.direction === 'right' && from.x > to.x) {
         const midX = (from.x + to.x) / 2

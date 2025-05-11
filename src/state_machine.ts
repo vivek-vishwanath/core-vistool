@@ -1,44 +1,13 @@
-import {ElementPoint, type Path} from "./path_painter";
-import {drawElbow} from "./handler";
+import type {Components} from "./components";
+import { writable } from 'svelte/store';
+import { get } from 'svelte/store';
+
+export const isPaused = writable(false);
 
 export class StateMachine {
 
-    buttons: HTMLButtonElement[];
-    intROM: HTMLElement;
-    stateReg: HTMLElement;
-    mainROM: HTMLElement;
-    mar: HTMLElement;
-    pc: HTMLElement;
-    k0: HTMLElement;
-    ram: HTMLElement;
+    constructor(private components: Components) {}
 
-    constructor(buttons: HTMLButtonElement[], intROM: HTMLElement, stateReg: HTMLElement, mainROM: HTMLElement, mar: HTMLElement, pc: HTMLElement, k0: HTMLElement, ram: HTMLElement) {
-        this.buttons = buttons;
-        this.intROM = intROM;
-        this.stateReg = stateReg;
-        this.mainROM = mainROM;
-        this.mar = mar;
-        this.pc = pc;
-        this.k0 = k0;
-        this.ram = ram;
-    }
-
-    private animations: ((a: number) => Path | null)[][] = [
-        [
-            (i) => drawElbow(new ElementPoint(this.buttons[i], 'top'), new ElementPoint(this.intROM, 'top'), 1500, 'red'),
-            (_) => drawElbow(new ElementPoint(this.intROM, 'right'), new ElementPoint(this.stateReg, 'left'), 500, 'red'),
-        ],
-        [
-            (_) => drawElbow(new ElementPoint(this.stateReg, 'right'), new ElementPoint(this.mainROM, 'left'), 500, 'orange'),
-            (i) => drawElbow(new ElementPoint(this.mainROM, 'bottom'), new ElementPoint(this.buttons[i], 'right'), 1000, 'orange'),
-            (i) => drawElbow(new ElementPoint(this.pc, 'right'), new ElementPoint(this.k0, 'left'), 800, 'orange'),
-            (i) => drawElbow(new ElementPoint(this.buttons[i], 'bottom'), new ElementPoint(this.mar, 'left'), 1500, 'orange'),
-        ],
-        [
-            (_) => drawElbow(new ElementPoint(this.mar, 'right'), new ElementPoint(this.ram, 'left'), 500, '#caa200'),
-            (_) => drawElbow(new ElementPoint(this.ram, 'right'), new ElementPoint(this.pc, 'left'), 500, '#caa200'),
-        ]
-    ];
     private currentCycle = 0;
     private currentStep = 0;
 
@@ -46,11 +15,30 @@ export class StateMachine {
 
     private currentInterrupt: number | undefined;
 
+    pauseCondition: (...args: any[]) => boolean = () => false;
+
+    togglePause() {
+        const value = !get(isPaused);
+        if (this.currentInterrupt !== undefined)
+            isPaused.set(value)
+        this.pauseCondition = () => value;
+        const i = this.currentInterrupt ?? -1;
+        if (!value && i != -1 && !this.inProgress) {
+            this.pauseState = -1;
+            this.animate(i);
+        }
+    }
+
+    finishClockCycle() {
+        isPaused.set(false);
+        this.pauseCondition = (_, step) => step === 0
+        const curr = this.currentInterrupt ?? -1;
+        if (curr !== -1 && !this.inProgress) this.animate(curr);
+    }
+
     dispatcher() {
-        console.log("dispatcher")
         if (this.currentInterrupt !== undefined) return;
         if (this.interruptQueue.length > 0) {
-            console.log("interruptQueue = " + this.interruptQueue);
             this.currentInterrupt = this.interruptQueue.shift();
             let i = this.currentInterrupt ?? -1;
             if (i !== -1) this.animate(i);
@@ -62,19 +50,29 @@ export class StateMachine {
             this.interruptQueue.push(deviceID);
             if (this.currentInterrupt === undefined) this.dispatcher();
         }
-        console.log(this.interruptQueue);
     }
 
+    isPaused(): boolean {
+        return this.pauseCondition(this.currentCycle, this.currentStep)
+    }
+
+    pauseState = -1;
+    inProgress = false;
+
     animate(i: number) {
-        console.trace("animate: " + this.currentCycle)
-        if (this.currentCycle < this.animations.length) {
-            const cycle = this.animations[this.currentCycle];
+        if (this.currentCycle < this.components.animations.length) {
+            const cycle = this.components.animations[this.currentCycle];
             const path = cycle[this.currentStep++];
             if (this.currentStep === cycle.length) {
                 this.currentCycle++;
                 this.currentStep = 0;
             }
-            path(i)?.drawPath().set(() => setTimeout(() => this.animate(i), this.currentStep === 0 ? 500 : 100));
+            this.inProgress = true;
+            path(i)?.drawPath().set(() => {
+                this.inProgress = false;
+                if (this.isPaused()) isPaused.set(true);
+                else setTimeout(() => this.animate(i), this.currentStep === 0 ? 500 : 100)
+            });
             i = this.currentInterrupt ?? -1;
         } else {
             this.currentCycle = 0;
