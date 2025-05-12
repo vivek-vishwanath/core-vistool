@@ -1,12 +1,13 @@
 import type {Components} from "./components";
-import { writable } from 'svelte/store';
-import { get } from 'svelte/store';
+import {writable} from 'svelte/store';
+import {get} from 'svelte/store';
 
 export const isPaused = writable(false);
 
 export class StateMachine {
 
-    constructor(private components: Components) {}
+    constructor(private components: Components) {
+    }
 
     private currentCycle = 0;
     private currentStep = 0;
@@ -62,13 +63,14 @@ export class StateMachine {
     animate(i: number) {
         if (this.currentCycle < this.components.animations.length) {
             const cycle = this.components.animations[this.currentCycle];
-            const path = cycle[this.currentStep++];
-            if (this.currentStep === cycle.length) {
-                this.currentCycle++;
-                this.currentStep = 0;
-            }
+            const path = cycle[this.currentStep];
             this.inProgress = true;
-            path(i)?.drawPath().set(() => {
+            path[i]?.drawPath().set(() => {
+                this.currentStep++;
+                if (this.currentStep === cycle.length) {
+                    this.currentCycle++;
+                    this.currentStep = 0;
+                }
                 this.inProgress = false;
                 if (this.isPaused()) isPaused.set(true);
                 else setTimeout(() => this.animate(i), this.currentStep === 0 ? 500 : 100)

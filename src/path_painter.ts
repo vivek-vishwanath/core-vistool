@@ -11,42 +11,43 @@ export abstract class Path {
 
 export class PointPath extends Path {
 
-    private pathData: [number, number][] = [];
-    private svgRect: DOMRect | undefined;
+    private path: d3.Selection<SVGPathElement, unknown, HTMLElement, undefined>
     private duration: number;
-    private strokeColor: string;
 
     constructor(svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, undefined>, pathData: [number, number][], duration: number, color: string) {
         super(svg);
-        this.pathData = pathData;
-        this.svgRect = svg.node()?.getBoundingClientRect();
+        const svgRect = svg.node()?.getBoundingClientRect();
         this.duration = duration;
-        this.strokeColor = color;
+        const line = d3.line<[number, number]>()
+            .x(d => d[0] - (svgRect?.left ?? 0))
+            .y(d => d[1] - (svgRect?.top ?? 0))
+            .curve(d3.curveLinear);
+        this.path = svg.append('path')
+            .attr('d', line(pathData)!)
+            .attr('stroke', color)
+            .attr('stroke-width', 3)
+            .attr('fill', 'none');
+        const totalLength = this.path.node()?.getTotalLength() ?? 0;
+        this.path
+            .attr('stroke-dasharray', totalLength)
+            .attr('stroke-dashoffset', totalLength)
+            .attr('marker-end', null);
     }
 
-    line = d3.line<[number, number]>()
-        .x(d => d[0] - (this.svgRect?.left ?? 0))
-        .y(d => d[1] - (this.svgRect?.top ?? 0))
-        .curve(d3.curveLinear);
 
     drawPath(): Callback {
-        const path = this.svg.append('path')
-            .attr('d', this.line(this.pathData)!)
-            .attr('stroke', this.strokeColor)
-            .attr('stroke-width', 2)
-            .attr('fill', 'none');
-
-        const totalLength = (path.node() as SVGPathElement).getTotalLength();
+        const totalLength = (this.path.node() as SVGPathElement).getTotalLength();
         const callback = new Callback(() => {});
 
-        path
+        this.path
             .attr('stroke-dasharray', totalLength)
             .attr('stroke-dashoffset', totalLength)
             .transition()
             .duration(this.duration)
             .ease(d3.easeLinear)
             .attr('stroke-dashoffset', 0)
-            .on("end", () => { path.attr("marker-end", "url(#arrow)"); callback.function() });
+            .on("end", () => { this.path.attr("marker-end", "url(#arrow)"); callback.function() });
+
         return callback;
     }
 }
