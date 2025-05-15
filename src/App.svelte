@@ -18,15 +18,16 @@
 
     function sendInterrupt(i: number) {
         simulator.sendInterrupt(i);
+        // simulator.play(i);
     }
 
     function togglePause() {
         simulator.togglePause();
     }
 
-    function finishCycle() {
-        simulator.finishClockCycle();
-    }
+    // function finishCycle() {
+    //     simulator.finishClockCycle();
+    // }
 
     onMount(() => {
         simulator = new StateMachine(new Components(buttons, intROM, stateReg, mainROM, mar, pc, k0, ram));
@@ -38,8 +39,8 @@
             .attr("viewBox", "0 0 10 10")
             .attr("refX", 8)      // Match to path's end
             .attr("refY", 5)
-            .attr("markerWidth", 6)
-            .attr("markerHeight", 6)
+            .attr("markerWidth", 4)
+            .attr("markerHeight", 4)
             .attr("orient", "auto-start-reverse")
             .append("path")
             .attr("d", "M 0 0 L 10 5 L 0 10 z")
@@ -107,5 +108,5 @@
         </div>
     </div>
     <button class="control_buttons" onclick={togglePause}>{$isPaused ? 'Play' : 'Pause'}</button>
-    <button class="control_buttons" onclick={finishCycle}>Finish Cycle</button>
+    <button class="control_buttons" >Finish Cycle</button>
 </main>

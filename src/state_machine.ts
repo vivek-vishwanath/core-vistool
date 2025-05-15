@@ -16,33 +16,42 @@ export class StateMachine {
 
     private currentInterrupt: number | undefined;
 
+    play(i: number) {
+        this.components.animation.play(i);
+    }
+
     pauseCondition: (...args: any[]) => boolean = () => false;
 
     togglePause() {
         const value = !get(isPaused);
         if (this.currentInterrupt !== undefined)
             isPaused.set(value)
-        this.pauseCondition = () => value;
-        const i = this.currentInterrupt ?? -1;
-        if (!value && i != -1 && !this.inProgress) {
-            this.pauseState = -1;
-            this.animate(i);
+        if (value)
+            this.components.animation.pause();
+        else {
+            this.components.animation.resume();
         }
+        // this.pauseCondition = () => value;
+        // const i = this.currentInterrupt ?? -1;
+        // if (!value && i != -1 && !this.inProgress) {
+        //     this.pauseState = -1;
+        //     // this.animate(i);
+        // }
     }
 
-    finishClockCycle() {
-        isPaused.set(false);
-        this.pauseCondition = (_, step) => step === 0
-        const curr = this.currentInterrupt ?? -1;
-        if (curr !== -1 && !this.inProgress) this.animate(curr);
-    }
-
+    // finishClockCycle() {
+    //     isPaused.set(false);
+    //     this.pauseCondition = (_, step) => step === 0
+    //     const curr = this.currentInterrupt ?? -1;
+    //     if (curr !== -1 && !this.inProgress) this.animate(curr);
+    // }
+    //
     dispatcher() {
         if (this.currentInterrupt !== undefined) return;
         if (this.interruptQueue.length > 0) {
             this.currentInterrupt = this.interruptQueue.shift();
             let i = this.currentInterrupt ?? -1;
-            if (i !== -1) this.animate(i);
+            if (i !== -1) this.play(i);
         }
     }
 
@@ -59,7 +68,7 @@ export class StateMachine {
 
     pauseState = -1;
     inProgress = false;
-
+/*
     animate(i: number) {
         if (this.currentCycle < this.components.animations.length) {
             const cycle = this.components.animations[this.currentCycle];
@@ -82,5 +91,5 @@ export class StateMachine {
             this.currentInterrupt = undefined;
         }
         this.dispatcher();
-    }
+    }*/
 }

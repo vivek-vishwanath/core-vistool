@@ -6,12 +6,8 @@ function getSVG() {
     return d3.select<SVGSVGElement, unknown>("#svg-canvas");
 }
 
-export function drawElbow(from: ElementPoint, to: ElementPoint, duration: number = 1000, color: string = 'black'): Path | null {
+export function drawElbow(from: ElementPoint, to: ElementPoint, duration: number = 1000, color: string = 'black'): Path {
     const svg = getSVG();
-    const svgRect = svg.node()?.getBoundingClientRect();
-
-    if (!svgRect) return null;
-
     if (from.direction === 'right' && to.direction === 'left' && from.x < to.x ||
         from.direction === 'left' && to.direction === 'right' && from.x > to.x) {
         const midX = (from.x + to.x) / 2
@@ -42,7 +38,7 @@ export function drawElbow(from: ElementPoint, to: ElementPoint, duration: number
         return new PointPath(svg, [from.path(), [midX, from.y], [midX, to.y], to.path()], duration, color);
     }
 
-    return null;
+    return new PointPath(svg, [[0, 0], [200, 200]], duration, color);
 
 }
 type CallbackFunction<TArgs extends any[] = any[], TResult = void> = (...args: TArgs) => TResult;

@@ -1,18 +1,22 @@
 import * as d3 from 'd3';
 import {Callback} from "./handler";
-import {color} from "d3";
 
 export abstract class Path {
 
     protected constructor(protected svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, undefined> ) {}
 
-    abstract drawPath(): Callback
+    abstract drawPath(callback: () => void): void
+
+    abstract pause(): void
+
+    abstract resume(): void
 }
 
 export class PointPath extends Path {
 
     private path: d3.Selection<SVGPathElement, unknown, HTMLElement, undefined>
     private duration: number;
+    callback = new Callback(() => {});
 
     constructor(svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, undefined>, pathData: [number, number][], duration: number, color: string) {
         super(svg);
@@ -35,10 +39,9 @@ export class PointPath extends Path {
     }
 
 
-    drawPath(): Callback {
+    drawPath(callback: () => void) {
         const totalLength = (this.path.node() as SVGPathElement).getTotalLength();
-        const callback = new Callback(() => {});
-
+        this.callback = new Callback(callback);
         this.path
             .attr('stroke-dasharray', totalLength)
             .attr('stroke-dashoffset', totalLength)
@@ -46,9 +49,30 @@ export class PointPath extends Path {
             .duration(this.duration)
             .ease(d3.easeLinear)
             .attr('stroke-dashoffset', 0)
-            .on("end", () => { this.path.attr("marker-end", "url(#arrow)"); callback.function() });
+            .on("end", () => { this.path.attr("marker-end", "url(#arrow)"); this.callback.function() });
+    }
 
-        return callback;
+    pause() {
+        this.path.interrupt();
+    }
+
+    resume() {
+        const totalLength = this.path.node()?.getTotalLength() ?? 0;
+        const currentOffset = parseFloat(this.path.attr('stroke-dashoffset'));
+
+        const remainingRatio = currentOffset / totalLength;
+        const remainingDuration = this.duration * remainingRatio;
+
+        // Animate from current offset to 0
+        this.path
+            .transition()
+            .duration(remainingDuration)
+            .ease(d3.easeLinear)
+            .attr('stroke-dashoffset', 0)
+            .on("end", () => {
+                this.path.attr("marker-end", "url(#arrow)");
+                this.callback.function();
+            });
     }
 }
 
@@ -70,8 +94,16 @@ export class VectorPath extends Path {
         this.pointPath = new PointPath(svg, pathData, duration, color);
     }
 
-    drawPath(): Callback {
-        return this.pointPath.drawPath();
+    drawPath(callback: () => void) {
+        this.pointPath.drawPath(callback);
+    }
+
+    pause() {
+        this.pointPath.pause();
+    }
+
+    resume() {
+        this.pointPath.resume();
     }
 }
 
