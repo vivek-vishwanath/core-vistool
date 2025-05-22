@@ -21,13 +21,19 @@ export class StateMachine {
         if (this.currentInterrupt !== -1)
             isPaused.set(value)
         if (value)  this.components.animation[this.currentInterrupt].pause();
-        else        this.components.animation[this.currentInterrupt].play();
+        else        this.components.animation[this.currentInterrupt].resume();
     }
 
     finishStep() {
         isPaused.set(false)
         this.components.animation[this.currentInterrupt].foreach((x) => x.onPauseStep = () => {isPaused.set(true);});
         this.components.animation[this.currentInterrupt].finishStep();
+    }
+
+    finishCycle() {
+        isPaused.set(false)
+        this.components.animation[this.currentInterrupt].onPauseCycle = () => {isPaused.set(true);};
+        this.components.animation[this.currentInterrupt].finishCycle();
     }
 
     dispatcher() {

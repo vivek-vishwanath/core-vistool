@@ -28,6 +28,10 @@
         simulator.finishStep();
     }
 
+    function finishCycle() {
+        simulator.finishCycle();
+    }
+
     onMount(() => {
         simulator = new StateMachine(new Components(buttons, intROM, stateReg, mainROM, mar, pc, k0, ram));
         const svg = d3.select("#svg-canvas");
@@ -108,4 +112,5 @@
     </div>
     <button class="control_buttons" onclick={togglePause}>{$isPaused ? 'Play' : 'Pause'}</button>
     <button class="control_buttons" onclick={finishStep}>Finish Step</button>
+    <button class="control_buttons" onclick={finishCycle}>Finish Cycle</button>
 </main>

@@ -4,6 +4,12 @@ export class InterruptAnimation {
 
     index = 0;
 
+    cont: ((e: unknown) => void) | undefined = undefined;
+    shouldPause = false;
+    interrupted = false;
+
+    onPauseCycle = () => {};
+
     constructor(private cycles: ClockCycle[]) {}
 
     foreach(lambda: (cycle: ClockCycle) => void) {
@@ -11,34 +17,66 @@ export class InterruptAnimation {
     }
 
     async draw() {
-        for (; this.index < this.cycles.length; this.index++) {
+        for (; this.index < this.cycles.length;) {
             await this.cycles[this.index].draw();
+            this.index++;
+            if (this.shouldPause) {
+                this.onPauseCycle();
+                await new Promise(resolve => {this.cont = resolve;});
+            }
         }
     }
 
     pause() {
+        this.interrupted = true;
         this.cycles[this.index].pause();
     }
 
     play() {
-        this.cycles[this.index].resume();
+
+        if (this.interrupted) {
+            this.cycles[this.index].resume();
+        } else {
+            this.cont?.(null);
+        }
+    }
+
+    resume() {
+        this.play();
+        this.interrupted = false;
+        this.shouldPause = false;
+    }
+
+    finishCycle() {
+        this.play();
+        this.interrupted = false;
+        this.shouldPause = true;
     }
 
 
     finishStep() {
         const cycle = this.cycles[this.index];
-        cycle.finishStep();
+        if (cycle.cont === undefined && !cycle.interrupted) {
+            cycle.shouldPause = true;
+            this.cont?.(null);
+        } else {
+            cycle.finishStep();
+        }
         if (cycle.shouldPause && cycle.index === cycle.length() - 1 && this.index < this.cycles.length - 1) {
             this.cycles[this.index + 1].shouldPause = true;
         }
+        if (this.index == this.cycles.length - 1) {
+            this.interrupted = false;
+        }
+        this.shouldPause = true;
     }
 }
 
 export class ClockCycle {
 
     index = 0;
-    cont: ((e: unknown) => void) | undefined = undefined;
 
+    cont: ((e: unknown) => void) | undefined = undefined;
     shouldPause = false;
     interrupted = false;
 
@@ -49,9 +87,9 @@ export class ClockCycle {
     length() { return  this.steps.length; }
 
     async draw() {
-        for (; this.index < this.steps.length; this.index++) {
+        for (; this.index < this.steps.length;) {
             await new Promise<void>(onFinished => this.steps[this.index].play(onFinished));
-            console.log("finished step #" + this.index + "; shouldPause = " + this.shouldPause);
+            this.index++
             if (this.shouldPause) {
                 this.onPauseStep();
                 await new Promise(resolve => {this.cont = resolve;});
@@ -67,8 +105,10 @@ export class ClockCycle {
     play() {
         if (this.interrupted) {
             this.steps[this.index].resume();
-        } else {
+        } else if (this.cont) {
             this.cont?.(null);
+        } else {
+            throw Error(`Unable to resume step`);
         }
     }
 
