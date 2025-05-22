@@ -18,16 +18,15 @@
 
     function sendInterrupt(i: number) {
         simulator.sendInterrupt(i);
-        // simulator.play(i);
     }
 
     function togglePause() {
         simulator.togglePause();
     }
 
-    // function finishCycle() {
-    //     simulator.finishClockCycle();
-    // }
+    function finishStep() {
+        simulator.finishStep();
+    }
 
     onMount(() => {
         simulator = new StateMachine(new Components(buttons, intROM, stateReg, mainROM, mar, pc, k0, ram));
@@ -108,5 +107,5 @@
         </div>
     </div>
     <button class="control_buttons" onclick={togglePause}>{$isPaused ? 'Play' : 'Pause'}</button>
-    <button class="control_buttons" >Finish Cycle</button>
+    <button class="control_buttons" onclick={finishStep}>Finish Step</button>
 </main>

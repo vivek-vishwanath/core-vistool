@@ -18,6 +18,9 @@ export class PointPath extends Path {
     private duration: number;
     callback = new Callback(() => {});
 
+    started = false;
+    paused = false;
+
     constructor(svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, undefined>, pathData: [number, number][], duration: number, color: string) {
         super(svg);
         const svgRect = svg.node()?.getBoundingClientRect();
@@ -50,13 +53,17 @@ export class PointPath extends Path {
             .ease(d3.easeLinear)
             .attr('stroke-dashoffset', 0)
             .on("end", () => { this.path.attr("marker-end", "url(#arrow)"); this.callback.function() });
+        this.started = true;
     }
 
     pause() {
         this.path.interrupt();
+        if (this.started)
+            this.paused = true;
     }
 
     resume() {
+        if (!this.paused) return;
         const totalLength = this.path.node()?.getTotalLength() ?? 0;
         const currentOffset = parseFloat(this.path.attr('stroke-dashoffset'));
 
@@ -73,6 +80,7 @@ export class PointPath extends Path {
                 this.path.attr("marker-end", "url(#arrow)");
                 this.callback.function();
             });
+        this.paused = false;
     }
 }
 

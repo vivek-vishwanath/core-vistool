@@ -1,54 +1,87 @@
 import type {Path} from "./path_painter";
 
-export class Animation {
+export class InterruptAnimation {
 
-    currentCycle = 0;
+    index = 0;
 
     constructor(private cycles: ClockCycle[]) {}
 
-    play(i: number) {
-        this.cycles[this.currentCycle].play(() => {
-            this.currentCycle++
-            if (this.currentCycle < this.cycles.length)
-                setTimeout(() => this.play(i), 500);
-        }, i)
+    foreach(lambda: (cycle: ClockCycle) => void) {
+        this.cycles.forEach(lambda);
+    }
+
+    async draw() {
+        for (; this.index < this.cycles.length; this.index++) {
+            await this.cycles[this.index].draw();
+        }
     }
 
     pause() {
-        this.cycles[this.currentCycle].pause();
+        this.cycles[this.index].pause();
     }
 
-    resume() {
-        this.cycles[this.currentCycle].resume();
+    play() {
+        this.cycles[this.index].resume();
+    }
+
+
+    finishStep() {
+        const cycle = this.cycles[this.index];
+        cycle.finishStep();
+        if (cycle.shouldPause && cycle.index === cycle.length() - 1 && this.index < this.cycles.length - 1) {
+            this.cycles[this.index + 1].shouldPause = true;
+        }
     }
 }
 
 export class ClockCycle {
 
-    currentIndex = 0;
-    currentStep: Step | undefined = undefined;
+    index = 0;
+    cont: ((e: unknown) => void) | undefined = undefined;
 
-    constructor(private steps: ((i: number) => Step)[]) {;
-    }
+    shouldPause = false;
+    interrupted = false;
 
-    play(callBack: () => void, i: number) {
-        let step = this.steps[this.currentIndex](i);
-        this.currentStep = step;
-        step.play(() => {
-            this.currentIndex++
-            if (this.currentIndex < this.steps.length)
-                this.play(callBack, i);
-            else
-                callBack()
-        })
+    onPauseStep = () => {};
+
+    constructor(private steps: Step[]) {}
+
+    length() { return  this.steps.length; }
+
+    async draw() {
+        for (; this.index < this.steps.length; this.index++) {
+            await new Promise<void>(onFinished => this.steps[this.index].play(onFinished));
+            console.log("finished step #" + this.index + "; shouldPause = " + this.shouldPause);
+            if (this.shouldPause) {
+                this.onPauseStep();
+                await new Promise(resolve => {this.cont = resolve;});
+            }
+        }
     }
 
     pause() {
-        this.currentStep?.pause();
+        this.interrupted = true;
+        this.steps[this.index].pause();
+    }
+
+    play() {
+        if (this.interrupted) {
+            this.steps[this.index].resume();
+        } else {
+            this.cont?.(null);
+        }
     }
 
     resume() {
-        this.currentStep?.resume();
+        this.play();
+        this.interrupted = false;
+        this.shouldPause = false;
+    }
+
+    finishStep() {
+        this.play();
+        this.interrupted = false;
+        this.shouldPause = true;
     }
 }
 
