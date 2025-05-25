@@ -18,11 +18,15 @@ export class InterruptAnimation {
 
     async draw() {
         for (; this.index < this.cycles.length;) {
-            await this.cycles[this.index].draw();
+            const cycle = this.cycles[this.index];
+            await cycle.draw();
+            this.interrupted =  false;
             this.index++;
-            if (this.shouldPause) {
+            if (this.shouldPause && this.index < this.cycles.length) {
                 this.onPauseCycle();
+                console.log("paused after cycle")
                 await new Promise(resolve => {this.cont = resolve;});
+                console.log("resuming after cycle")
             }
         }
     }
@@ -33,41 +37,39 @@ export class InterruptAnimation {
     }
 
     play() {
-
         if (this.interrupted) {
             this.cycles[this.index].resume();
         } else {
             this.cont?.(null);
         }
+        this.interrupted = false;
     }
 
     resume() {
-        this.play();
-        this.interrupted = false;
         this.shouldPause = false;
+        if (this.cycles[this.index].resume() === -1) {
+            this.play();
+        }
     }
 
     finishCycle() {
-        this.play();
-        this.interrupted = false;
         this.shouldPause = true;
+        if (this.interrupted) {
+            this.interrupted = false;
+            this.cycles[this.index].shouldPause = false;
+            this.cycles[this.index].play();
+        }
+        else this.play();
     }
 
 
     finishStep() {
-        const cycle = this.cycles[this.index];
-        if (cycle.cont === undefined && !cycle.interrupted) {
-            cycle.shouldPause = true;
-            this.cont?.(null);
-        } else {
-            cycle.finishStep();
-        }
-        if (cycle.shouldPause && cycle.index === cycle.length() - 1 && this.index < this.cycles.length - 1) {
-            this.cycles[this.index + 1].shouldPause = true;
-        }
-        if (this.index == this.cycles.length - 1) {
-            this.interrupted = false;
-        }
+        const current = this.cycles[this.index];
+        if (current.finishStep() === -1) this.cont?.(null);
+        // if (current.shouldPause && current.index === current.length() - 1 && this.index < this.cycles.length - 1) {
+        //     this.cycles[this.index + 1].shouldPause = true;
+        // }
+        this.interrupted =  true;
         this.shouldPause = true;
     }
 }
@@ -90,9 +92,11 @@ export class ClockCycle {
         for (; this.index < this.steps.length;) {
             await new Promise<void>(onFinished => this.steps[this.index].play(onFinished));
             this.index++
-            if (this.shouldPause) {
+            if (this.shouldPause && this.index < this.steps.length) {
                 this.onPauseStep();
+                console.log("paused after step")
                 await new Promise(resolve => {this.cont = resolve;});
+                console.log("resuming after step")
             }
         }
     }
@@ -108,20 +112,20 @@ export class ClockCycle {
         } else if (this.cont) {
             this.cont?.(null);
         } else {
-            throw Error(`Unable to resume step`);
+            return -1;
         }
+        this.interrupted = false;
+        return 0;
     }
 
     resume() {
-        this.play();
-        this.interrupted = false;
         this.shouldPause = false;
+        return this.play();
     }
 
     finishStep() {
-        this.play();
-        this.interrupted = false;
         this.shouldPause = true;
+        return this.play();
     }
 }
 
