@@ -64,8 +64,29 @@
                         <div class="tab active-tab">main.s</div>
                         <div class="tab">handler.s</div>
                     </div>
-                    <div style="height: 10rem; background: #f3f4f6; padding: 0.5rem; font-family: monospace; font-size: 0.875rem;">
-                        ; Assembly code goes here...
+                    <div style="height: 10rem; overflow-y: auto; background: #f3f4f6; padding: 0.5rem; font-family: monospace; font-size: 0.875rem; text-align: start">
+                        push $k0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; Save return address to stack        <br>
+                        ei&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; Re-enable interrupts                <br>
+                        <br>
+                        push $a0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; Save processor registers to stack   <br>
+                        push $a1        <br>
+                        ...             <br>
+                        push $t1        <br>
+                        push $t2        <br>
+                        <br>
+                        lea $t0, DIRECTION        <br>
+                        in $t1          <br>
+                        sw $t1, 0($t0)  <br>
+                        <br>
+                        pop $t2         <br>
+                        pop $t1         <br>
+                        ...             <br>
+                        pop $a1         <br>
+                        pop $a0         <br>
+                        <br>
+                        di              <br>
+                        pop $k0         <br>
+                        reti            <br>
                     </div>
                 </div>
                 <!-- Pixel Display -->
