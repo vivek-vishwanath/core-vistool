@@ -24,9 +24,9 @@ export class InterruptAnimation {
             this.index++;
             if (this.shouldPause && this.index < this.cycles.length) {
                 this.onPauseCycle();
-                console.log("paused after cycle")
                 await new Promise(resolve => {this.cont = resolve;});
-                console.log("resuming after cycle")
+            } else {
+                await new Promise((resolve) => setTimeout(() => resolve(null), 800));
             }
         }
     }
@@ -94,9 +94,7 @@ export class ClockCycle {
             this.index++
             if (this.shouldPause && this.index < this.steps.length) {
                 this.onPauseStep();
-                console.log("paused after step")
                 await new Promise(resolve => {this.cont = resolve;});
-                console.log("resuming after step")
             }
         }
     }

@@ -64,29 +64,27 @@
                         <div class="tab active-tab">main.s</div>
                         <div class="tab">handler.s</div>
                     </div>
-                    <div style="height: 10rem; overflow-y: auto; background: #f3f4f6; padding: 0.5rem; font-family: monospace; font-size: 0.875rem; text-align: start">
-                        push $k0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; Save return address to stack        <br>
-                        ei&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; Re-enable interrupts                <br>
+                    <div style="height: 15rem; overflow-y: auto; background: #f3f4f6; padding: 0.5rem; font-family: monospace; font-size: 0.875rem; text-align: start">
+                        push $k0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; Save return address to stack<br>
+                        ei&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; Re-enable interrupts<br>
                         <br>
-                        push $a0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; Save processor registers to stack   <br>
-                        push $a1        <br>
+                        push $a0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; Save processor registers to stack<br>
+                        push $a1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; ...<br>
                         ...             <br>
-                        push $t1        <br>
-                        push $t2        <br>
+                        push $t2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; ...<br>
                         <br>
-                        lea $t0, DIRECTION        <br>
-                        in $t1          <br>
-                        sw $t1, 0($t0)  <br>
+                        lea $t0, DIRECTION&nbsp;&nbsp;; Get the pointer to the direction variable<br>
+                        in $t1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; Poll the device to check the new direction<br>
+                        sw $t1, 0($t0)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; Update the new direction<br>
                         <br>
-                        pop $t2         <br>
-                        pop $t1         <br>
+                        pop $a0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; Restore processor registers from stack<br>
+                        pop $a1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; ...<br>
                         ...             <br>
-                        pop $a1         <br>
-                        pop $a0         <br>
+                        pop $t2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; ...<br>
                         <br>
-                        di              <br>
-                        pop $k0         <br>
-                        reti            <br>
+                        ei&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; Disable interrupts<br>
+                        pop $k0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; Restore return address from stack         <br>
+                        reti&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; Return & enable interrupts atomically            <br>
                     </div>
                 </div>
                 <!-- Pixel Display -->

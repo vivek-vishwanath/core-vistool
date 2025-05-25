@@ -13,7 +13,10 @@ export class StateMachine {
     private currentInterrupt = -1;
 
     play(i: number) {
-        this.components.animation[i].draw().then(_ => console.log("animation finished"));
+        this.components.animation[i].draw().then(_ => {
+            this.currentInterrupt = -1;
+            console.log("animation finished")
+        });
     }
 
     togglePause() {
@@ -48,7 +51,7 @@ export class StateMachine {
     sendInterrupt(deviceID: number): void {
         if (!this.interruptQueue.includes(deviceID)) {
             this.interruptQueue.push(deviceID);
-            if (this.currentInterrupt === -1) this.dispatcher();
         }
+        if (this.currentInterrupt === -1) this.dispatcher();
     }
 }
