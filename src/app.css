@@ -81,3 +81,51 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+
+.tooltip-container {
+
+  position: fixed;
+  bottom: 16px;
+  right: 32px;
+  width: 64px;
+}
+
+.circle {
+  background-color: #252; /* or any color */
+  color: white;
+  border-radius: 50%;
+  display: flex;            /* center the content */
+  align-items: center;
+  justify-content: center;
+  font-family: Georgia, serif;  /* for italic "i" with ticks */
+  font-style: italic;
+  font-weight: bold;
+  font-size: 20px;
+  width: 32px;
+  height: 32px;
+  margin: 8px;
+}
+
+.tooltip-box {
+  position: absolute;
+  bottom: 56px;
+  right: 16px;
+  width: 256px;
+  max-width: 256px;
+  white-space: normal;
+  word-wrap: break-word;
+  background-color: #252;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.app-details > * {
+  font-family: "Segoe UI", sans-serif;
+  text-align: start;
+}

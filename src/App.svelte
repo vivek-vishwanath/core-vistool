@@ -10,9 +10,11 @@
     let stateReg: HTMLElement, k0: HTMLElement, pc: HTMLElement, mar: HTMLElement;
     let ram: HTMLElement;
 
-    const pixels = Array.from({length: 32}, () =>
-        Array.from({length: 32}, () => Math.random() < 0.3)
-    );
+    // const pixels = Array.from({length: 32}, () =>
+    //     Array.from({length: 32}, () => Math.random() < 0.3)
+    // );
+
+    let isHovered = false;
 
     let simulator: StateMachine;
 
@@ -59,46 +61,59 @@
             <div style="display: flex; flex-direction: row; align-items: center; gap: 1rem;">
 
                 <!-- Code Editor -->
-                <div style="background: white; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); width: 40vw">
+                <div style="background: white; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); width: 100%">
                     <div class="editor-tabs">
-                        <div class="tab active-tab">main.s</div>
-                        <div class="tab">handler.s</div>
+                        <div class="tab">main.s</div>
+                        <div class="tab active-tab">handler.s</div>
                     </div>
-                    <div style="height: 15rem; overflow-y: auto; background: #f3f4f6; padding: 0.5rem; font-family: monospace; font-size: 0.875rem; text-align: start">
-                        push $k0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; Save return address to stack<br>
-                        ei&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; Re-enable interrupts<br>
+                    <div class="code-editor">
+                        push $k0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;;
+                        Save return address to stack<br>
+                        ei&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;;
+                        Re-enable interrupts<br>
                         <br>
-                        push $a0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; Save processor registers to stack<br>
-                        push $a1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; ...<br>
-                        ...             <br>
-                        push $t2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; ...<br>
+                        push $a0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;;
+                        Save processor registers to stack<br>
+                        push $a1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;;
+                        ...<br>
+                        ... <br>
+                        push $t2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;;
+                        ...<br>
                         <br>
-                        lea $t0, DIRECTION&nbsp;&nbsp;; Get the pointer to the direction variable<br>
-                        in $t1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; Poll the device to check the new direction<br>
-                        sw $t1, 0($t0)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; Update the new direction<br>
+                        lea $t0, DIRECTION&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; Get the pointer to the direction
+                        variable<br>
+                        in $t1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;;
+                        Poll the device to check the new direction<br>
+                        sw $t1, 0($t0)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; Update the
+                        new direction<br>
                         <br>
-                        pop $a0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; Restore processor registers from stack<br>
-                        pop $a1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; ...<br>
-                        ...             <br>
-                        pop $t2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; ...<br>
+                        pop $a0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;;
+                        Restore processor registers from stack<br>
+                        pop $a1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;;
+                        ...<br>
+                        ... <br>
+                        pop $t2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;;
+                        ...<br>
                         <br>
-                        ei&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; Disable interrupts<br>
-                        pop $k0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; Restore return address from stack         <br>
-                        reti&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;; Return & enable interrupts atomically            <br>
+                        ei&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;;
+                        Disable interrupts<br>
+                        pop $k0&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;;
+                        Restore return address from stack <br>
+                        reti&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;;
+                        Return & enable interrupts atomically <br>
                     </div>
                 </div>
                 <!-- Pixel Display -->
-                <div class="pixel-display">
-                    {#each pixels as row, i}
-                        {#each row as pixel, j}
-                            <div style="display: flex; flex-direction: row; align-items: center; gap: 1rem;">
-                                <div class='pixel' class:green={pixel}></div>
-                            </div>
-                        {/each}
-                    {/each}
-                </div>
+                <!--                <div class="pixel-display">-->
+                <!--                    {#each pixels as row, i}-->
+                <!--                        {#each row as pixel, j}-->
+                <!--                            <div style="display: flex; flex-direction: row; align-items: center; gap: 1rem;">-->
+                <!--                                <div class='pixel' class:green={pixel}></div>-->
+                <!--                            </div>-->
+                <!--                        {/each}-->
+                <!--                    {/each}-->
+                <!--                </div>-->
             </div>
-
             <svg id="svg-canvas"></svg>
             <div class="diagram-container">
                 <div class="left-column">
@@ -132,4 +147,26 @@
     <button class="control_buttons" onclick={togglePause}>{$isPaused ? 'Play' : 'Pause'}</button>
     <button class="control_buttons" onclick={finishStep}>Finish Step</button>
     <button class="control_buttons" onclick={finishCycle}>Finish Cycle</button>
+    <div class="tooltip-container">
+        {#if isHovered}
+            <div class="tooltip-box">
+                <div style="font-size: 18px">Core Visualization Tool</div>
+                <hr/>
+                <div class="app-details">
+                    <p><strong>Version:</strong> v0.1.0</p>
+                    <p><strong>Interaction:</strong> Click the INT buttons to simulate an interrupt</p>
+                    <p><strong>New Features:</strong> Playback control</p>
+                    <p><strong>Upcoming:</strong> Handler code step-through</p>
+                </div>
+            </div>
+        {/if}
+        <div class="circle"
+             style="background-color: transparent; width: 48px; height: 48px;"
+             role="presentation"
+             onmouseenter={() => {isHovered = true;}}
+             onmouseleave={() => {isHovered = false;}}>
+            <div class="circle">i</div>
+
+        </div>
+    </div>
 </main>

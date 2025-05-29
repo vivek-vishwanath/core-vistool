@@ -13,15 +13,25 @@
     display: grid;
     grid-template-columns: repeat(32, 1fr);
     grid-template-rows: repeat(32, 1fr);
-    width: 256px;
-    height: 256px;
+    width: 288px;
+    height: 288px;
     /*background-color: #166534; !* base green *!*/
     border: 1px solid black;
 }
 
 .editor-tabs {
     display: flex;
-    border-bottom: 1px solid #ccc;
+    /*border-bottom: 1px solid #ccc;*/
+}
+
+.code-editor {
+    height: 15rem;
+    overflow-y: auto;
+    background: #e5e7eb;
+    padding: 0.5rem;
+    font-family: monospace;
+    font-size: 0.875rem;
+    text-align: start;
 }
 
 .tab {
